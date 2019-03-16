@@ -1,21 +1,18 @@
+from scrapy.spiders import CrawlSpider, Rule
+from scrapy.linkextractors import LinkExtractor
 import scrapy
 
-class MofanSpider(scrapy.Spider):
-    name = "mofan"
-    start_urls = [
-        'https://morvanzhou.github.io/',
-    ]
-    # unseen = set()
-    # seen = set()      # 我们不在需要 set 了, 它自动去重
+class TorrentItem(scrapy.Item):
+    url = scrapy.Field()
 
-class MofanSpider(scrapy.Spider):
-    ...
-    def parse(self, response):
-        yield {     # return some results
-            'title': response.css('h1::text').extract_first(default='Missing').strip().replace('"', ""),
-            'url': response.url,
-        }
+class MininovaSpider(CrawlSpider):
 
-        urls = response.css('a::attr(href)').re(r'^/.+?/$')     # find all sub urls
-        for url in urls:
-            yield response.follow(url, callback=self.parse)     # it will filter duplication automatically
+    name = 'mininova'
+    allowed_domains = ['baidu.com']
+    start_urls = ['https://baike.baidu.com']
+    rules = [Rule(LinkExtractor(allow=['/item/.*']), 'parse_torrent')]
+
+    def parse_torrent(self, response):
+        torrent = TorrentItem()
+        torrent['url'] = response.url
+        return torrent
